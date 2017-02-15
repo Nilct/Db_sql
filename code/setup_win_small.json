@@ -1,6 +1,6 @@
 { 
 	"datapath": "C:\\Dev\\CodePython\\DB_sql\\data",
- 	"SIREN": "sirc-201701-with93.csv",
+ 	"SIREN": "sirc_first100.csv",
     "SIRENHeader": ["SIREN", "NIC", "L1_NORMALISEE", "L2_NORMALISEE", "L4_NORMALISEE", "L5_NORMALISEE", "L6_NORMALISEE", "TYPVOIE", "LIBVOIE", "CODPOS", "CEDEX", "DEPET", "APET700", "LIBAPET", "DAPET"],
     "SIRENHEADERRename": {
       "L1_NORMALISEE": "NORM_ACRONYME",
@@ -10,7 +10,7 @@
       "L6_NORMALISEE": "NORM_CP"
     },
     "KEEP": {"DEPET":93},
-    "BANO": "bano-93.csv",
+    "BANO": "bano-93_first100.csv",
 	"BANOHeader": ["id", "numero", "voie", "code_post", "nom_comm", "source", "lat", "lon"],
  	"update": false,
 	"verbose": true
