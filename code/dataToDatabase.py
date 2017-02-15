@@ -6,7 +6,7 @@ import psycopg2
 import sys, getopt
 
 
-def loadSirenDataFromCSV(filename = "siren_93.csv"):
+def loadSirenDataFromCSV(filename = "../data/siren_93.csv"):
     print("Read Siren data")
     df = pd.read_csv(filename, sep=';', encoding='latin-1')
     newDf = df.loc[:,["siren", "nic", "l1_normalisee", "l1_declaree", "numvoie", "indrep", "typvoie", "libvoie", "codpos", "libnatetab", "libapet"]]
@@ -18,7 +18,7 @@ def saveSirenDataIntoDatabase(newDf):
     engine = create_engine('postgresql:///bigdata')
     newDf.to_sql("SIREN", engine, if_exists='replace')
 
-def loadBanoDataFromCSV(filename = "bano_93.csv"):
+def loadBanoDataFromCSV(filename = "../data/bano_93.csv"):
     print("Read Bano data")
     df = pd.read_csv(filename, sep=';', encoding='latin-1')
     newDf = df.iloc[:,[1, 2, 3, 4, 6, 7]]
