@@ -17,10 +17,10 @@ Au final, les fichiers suivants sont utilisés :
 
 ### Bash 
 
-On souhaite ne garder que les entreprises du 93 - Seine-Saint-Denis. Un premier filtre *grossier* est appliqué pour ne garder que les lignes contenant '93' (à n'importe quel champ).
+On souhaite ne garder que les entreprises du 93 - Seine-Saint-Denis. Un premier filtre est appliqué pour ne garder que la première ligne d'entête et les lignes contenant '93' au champs du département.
 
 ``` sh
-$ grep '93' sirc-17804_9075_14209_201701_L_M_20170201_152507836.csv > sirc-201701-with93.csv
+$ more sirc-17804_9075_14209_201701_L_M_20170201_152507836.csv | ./filter93.sh > sirc_201701_dep93.csv
 ```
 
 Le fichier résultant fait 2.6 Go (à partir d'un fichier de 8.0 Go)
