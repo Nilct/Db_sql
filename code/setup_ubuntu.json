@@ -1,6 +1,6 @@
 { 
-	"datapath": "/home/prof/work/Db_sql/data",
- 	"SIREN": "sirc-201701-with93.csv",
+	"datapath": "/home/prof/work/Data/Db_sql/data",
+ 	"SIREN": "sirc_201701_dep93.csv",
     "SIRENHeader": ["SIREN", "NIC", "L1_NORMALISEE", "L2_NORMALISEE", "L4_NORMALISEE", "L5_NORMALISEE", "L6_NORMALISEE", "TYPVOIE", "LIBVOIE", "CODPOS", "CEDEX", "DEPET", "APET700", "LIBAPET", "DAPET"],
     "SIRENHEADERRename": {
       "L1_NORMALISEE": "NORM_ACRONYME",

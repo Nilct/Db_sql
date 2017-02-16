@@ -3,8 +3,9 @@ import sys
 import string
 from os import path
 from unidecode import unidecode
-
 from pandas import read_csv
+
+from utils.measureduration import MeasureDuration
 
 # Globals variables
 cfg = ''  # configuration
@@ -140,12 +141,10 @@ def match_data_with_same_code_post(sub_siren, sub_bano):
     return 0
 
 
-def test():
-    a= ['103BIS', '2', '24', '12TER']
-
-
 if __name__ == "__main__":
     init(sys.argv[1:])
-    df_bano = prepare_data_bano(verbose=True)
-    df_siren = prepare_data_siren(verbose=True)
+    with MeasureDuration() as m:
+        df_bano = prepare_data_bano(verbose=True)
+    with MeasureDuration() as m:
+        df_siren = prepare_data_siren(verbose=True)
     #join_data()
