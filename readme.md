@@ -23,7 +23,7 @@ On souhaite ne garder que les entreprises du 93 - Seine-Saint-Denis. Un premier 
 $ more sirc-17804_9075_14209_201701_L_M_20170201_152507836.csv | ./filter93.sh > sirc_201701_dep93.csv
 ```
 
-Le fichier résultant fait 2.6 Go (à partir d'un fichier de 8.0 Go)
+Le fichier résultant fait 159 Mo (à partir d'un fichier de 8.0 Go), il reste toutefois 18 lignes incorrectes qui seront filtrées dans le code python.
 
 ### Python
 
