@@ -4,6 +4,7 @@ import string
 from os import path
 from unidecode import unidecode
 from pandas import read_csv
+from pandas import to_numeric
 
 from utils.measureduration import MeasureDuration
 
@@ -32,7 +33,6 @@ def init(argv):
     data_path = cfg['datapath']
 
 
-
 '''
 BANO :
 - add columns ADD_num_voie and ADD_ind_rep to match SIREN NUMVOIE and INDREP
@@ -44,16 +44,19 @@ def prepare_data_bano(verbose=VERBOSE):
     df = read_csv(data_file, sep=',', header=None, encoding='latin-1')
     df.columns = cfg['BANOHeader']  # all columns are kept
     # create additional columns from numero
-    df['ADD_num_voie']= df['numero'].map(lambda x: x.rstrip("TERBIS"))
-    df['ADD_ind_rep']= df['numero'].map(lambda x: x.lstrip('0123456789'))
-    df['ADD_ind_rep']= df['ADD_ind_rep'].map(lambda x: x.replace('BIS','B'))
+    df['ADD_num_voie'] = df['numero'].map(lambda x: x.rstrip("TERBIS"))
+    df['ADD_ind_rep'] = df['numero'].map(lambda x: x.lstrip('0123456789'))
+    df['ADD_ind_rep'] = df['ADD_ind_rep'].map(lambda x: x.replace('BIS', 'B'))
     df['ADD_ind_rep'] = df['ADD_ind_rep'].map(lambda x: x.replace('TER', 'T'))
-    # additional column from voie : remove accent and put in caps
-    df['CAPS_voie']= df['voie'].map(lambda x: unidecode(x.upper()))
+    # additional columns : remove accent and put in caps
+    df['ADD_caps_voie'] = df['voie'].map(lambda x: unidecode(x.upper()))
+    df['ADD_caps_nom_comm'] = df['nom_comm'].map(lambda x: unidecode(x.upper()))
+    # change lat/lon dtype
+    df[['lat', 'lon']].apply(to_numeric)
+
     if verbose:
         print("Kept %d lines" % df.shape[0])
         print("Quick look\n %s" % df.head(5))
-
     return df
 
 '''
@@ -70,7 +73,7 @@ def prepare_data_siren(verbose=VERBOSE):
     df = read_csv(data_file, sep=';', header='infer', encoding='ISO-8859-15')  # encoding ?
     # drop columns
     if verbose:
-        print("Keep following headers")
+        print("Keep following headers (%d)"%len(cfg['SIRENHeader']))
         print(cfg['SIRENHeader'])
     df = df[cfg['SIRENHeader']]
     # rename columns
@@ -85,26 +88,26 @@ def prepare_data_siren(verbose=VERBOSE):
     if verbose:
         print("Rows after filtering by department : %d" % df.shape[0])
     # create columns for address
-    '''
-    di= {'ALL':'ALLEE ', 'AV':'AVENUE ', 'BD':'BOULEVARD ', 'CHE';'CHEMIN ', 'CHS':'CHAUSSEE ', 'FG':'FAUBOURG ', 'IMP':'IMPASSE ', 'LOT':'LOTISSEMENT ', 'PL':'PLACE ', 'QUA':'QUARTIER ', 'QUAI':'QUAI ', 'RUE': 'RUE ', 'RTE':'ROUTE '}
-    df['ADD_TYPVOIE']= df['TYPVOIE'].replace(di)  # option : inplace=True
-    df['ADD_LIBVOIE']= df['LIBVOIE'].map(lambda x: unidecode(x))
+    di= {'ALL': 'ALLEE ', 'AV': 'AVENUE ', 'BD':'BOULEVARD ', 'CHE':'CHEMIN ', 'CHS':'CHAUSSEE ', 'FG':'FAUBOURG ', 'IMP':'IMPASSE ', 'LOT':'LOTISSEMENT ', 'PL':'PLACE ', 'QUA':'QUARTIER ', 'QUAI':'QUAI ', 'RUE': 'RUE ', 'RTE':'ROUTE '}
+    df['TMP_TYPVOIE'] = df['TYPVOIE'].replace(di)  # option : inplace=True
+    df['TMP_LIBVOIE'] = df['LIBVOIE'].map(lambda x: unidecode(x))
     # get ready for merging
-    df['ADD_VOIE']= df['ADD_TYPVOIE']+ df['ADD_LIBVOIE']
+    df['ADD_VOIE'] = df['TMP_TYPVOIE'] + df['TMP_LIBVOIE']
     #df[df.ADD_TYPVOIE.isin(df.ADD_LIBVOIE)==False]['ADD_VOIE']=  df['ADD_TYPVOIE']+ df['ADD_LIBVOIE']
+    df['ADD_LIBCOM'] = df['LIBCOM'].map(lambda x: unidecode(x))
 
-
-
-
+    # drop TMP columns
+    df.drop(['TMP_TYPVOIE', 'TMP_LIBVOIE'], inplace=True, axis=1)
 
     # bano id
     df['BANO_ID'] = -1
-    '''
+
     if verbose:
         print("Kept %d rows" % df.shape[0])
         print("Quick look\n %s" % df.head(5))
 
     return df
+
 
 '''
 Populate a new column in SIREN df with the id of the corresponding BANO line
@@ -116,8 +119,8 @@ def join_data():
     if VERBOSE:
         print("-- join_data --")
     # get unique BANO.code_post
-    unique_CP_BANO= df_bano.code_post.unique()
-    unique_CP_SIREN= df_siren.CODPOS.unique()
+    unique_CP_BANO = df_bano.code_post.unique()
+    unique_CP_SIREN = df_siren.CODPOS.unique()
     print(unique_CP_BANO)
 
     if VERBOSE:
@@ -126,18 +129,26 @@ def join_data():
 
     for bano_cp in unique_CP_BANO:
         # find all bano rows
-        sub_bano= df_bano[df_bano['code_post']== bano_cp]
+        sub_bano = df_bano[df_bano['code_post'] == bano_cp]
         # find all siren rows
-        sub_siren= df_siren[df_siren['CODPOS']== bano_cp]
-        if sub_siren.shape[0]>0:
-            print("Found %d siren and %d bano" %(sub_siren.shape[0],sub_bano.shape[0]))
-        match_data_with_same_code_post(sub_siren, sub_bano)
+        sub_siren = df_siren[df_siren['CODPOS'] == bano_cp]
+        if sub_siren.shape[0] > 0:
+            print("Found %d siren and %d bano" % (sub_siren.shape[0] , sub_bano.shape[0]))
+        #match_data_with_same_code_post(sub_siren, sub_bano)
 
 
 '''
 Compare BANO{numero, voie} with SIREN{NUMVOIE, INDREP, TYPEVOIE, LIBVOIE}
 '''
-def match_data_with_same_code_post(sub_siren, sub_bano):
+def match_data_with_same_code_post(sub_bano):
+    # match [BANO]ADD_num_voie with [SIREN]NUMVOIE
+    #             ADD_ind_rep              INDREP
+    #             ADD_caps_voie            ADD_VOIE
+    #             code_post                CODPOS (already done)
+    #             ADD_nom_comm             ADD_LIBCOM
+    #df[ (df.A=='blue') & (df.B=='red') & (df.C=='square') ]['D'] = 'succeed'
+    #df_siren[(sub_bano.ADD_num_voie == df_siren.NUMVOIE) & (sub_bano.ADD_caps_voie==df_siren.INDREP) & (sub_bano.ADD_nom_comm == df_siren.ADD_LIBCOM)]['BANO_ID']=
+
     return 0
 
 
@@ -147,4 +158,4 @@ if __name__ == "__main__":
         df_bano = prepare_data_bano(verbose=True)
     with MeasureDuration() as m:
         df_siren = prepare_data_siren(verbose=True)
-    #join_data()
+    join_data()
