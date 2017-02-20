@@ -1,0 +1,18 @@
+{ 
+	"datapath": "/home/prof/work/Db_sql/data",
+ 	"SIREN": "sirc_201701_dep93.csv",
+    "SIRENHeader": ["SIREN", "NIC", "L1_NORMALISEE", "L2_NORMALISEE", "L4_NORMALISEE", "L5_NORMALISEE", "L6_NORMALISEE", "NUMVOIE", "INDREP","TYPVOIE", "LIBVOIE", "CODPOS", "CEDEX", "DEPET", "LIBCOM", "APET700", "LIBAPET", "DAPET"],
+    "SIRENHEADERRename": {
+      "L1_NORMALISEE": "NORM_ACRONYME",
+      "L2_NORMALISEE":"NORM_NOM",
+      "L4_NORMALISEE":"NORM_ADRESSE",
+      "L5_NORMALISEE": "NORM_BP",
+      "L6_NORMALISEE": "NORM_CP"
+    },
+    "KEEP": {"DEPET":93},
+    "BANO": "bano-93.csv",
+	"BANOHeader": ["id", "numero", "voie", "code_post", "nom_comm", "source", "lat", "lon"],
+ 	"update": false,
+	"verbose": true
+}
+

@@ -5,8 +5,8 @@ from os import path
 from unidecode import unidecode
 from pandas import read_csv
 from pandas import to_numeric
-
 from utils.measureduration import MeasureDuration
+from sqlalchemy import create_engine, MetaData
 
 # Globals variables
 cfg = ''  # configuration
@@ -14,6 +14,11 @@ data_path = ''
 VERBOSE = False
 df_bano= ''
 df_siren= ''
+
+# database 
+user= 'tp1'
+password= 'tp1'
+db='bigdata1'
 
 
 def init(argv):
@@ -100,7 +105,7 @@ def prepare_data_siren(verbose=VERBOSE):
     df.drop(['TMP_TYPVOIE', 'TMP_LIBVOIE'], inplace=True, axis=1)
 
     # bano id
-    df['BANO_ID'] = -1
+    df['BANO_ID'] = ""
 
     if verbose:
         print("Kept %d rows" % df.shape[0])
@@ -151,11 +156,44 @@ def match_data_with_same_code_post(sub_bano):
 
     return 0
 
+'''
+Database
+'''
+def connect(user, password, db, host='localhost', port=5432):
+    '''Returns a connection and a metadata object'''
+    # We connect with the help of the PostgreSQL URL
+    # postgresql://federer:grandestslam@localhost:5432/tennis
+    url = 'postgresql://{}:{}@{}:{}/{}'
+    url = url.format(user, password, host, port, db)
+
+    # The return value of create_engine() is our connection object
+    con = create_engine(url, client_encoding='utf8')
+
+    # We then bind the connection to MetaData()
+    meta = MetaData(bind=con, reflect=True)
+
+    print(con)
+    print(meta)
+
+    return con, meta
+
+def importData(engine):
+    df_siren.to_sql("siren", engine, if_exists='replace')
+    df_bano.to_sql("bano", engine, if_exists='replace')
+    
+    
+
 
 if __name__ == "__main__":
     init(sys.argv[1:])
+    
     with MeasureDuration() as m:
         df_bano = prepare_data_bano(verbose=True)
     with MeasureDuration() as m:
         df_siren = prepare_data_siren(verbose=True)
-    join_data()
+    #join_data()
+    con, meta= connect(user, password, db)
+    with MeasureDuration() as m:
+        importData(con)
+
+    
