@@ -5,6 +5,7 @@ from os import path
 from unidecode import unidecode
 from pandas import read_csv
 from pandas import to_numeric
+from pandas import notnull
 from utils.measureduration import MeasureDuration
 from sqlalchemy import create_engine, MetaData
 
@@ -45,23 +46,25 @@ BANO :
 '''
 def prepare_data_bano(verbose=VERBOSE):
     data_file = path.join(data_path, cfg['BANO'])
-    if verbose: print("Reading %s" % data_file)
+    print("Reading %s" % data_file)
     df = read_csv(data_file, sep=',', header=None, encoding='latin-1')
     df.columns = cfg['BANOHeader']  # all columns are kept
     # create additional columns from numero
     df['ADD_num_voie'] = df['numero'].map(lambda x: x.rstrip("TERBIS"))
-    df['ADD_ind_rep'] = df['numero'].map(lambda x: x.lstrip('0123456789'))
+    df['ADD_ind_rep'] = df['numero'].map(lambda x: x.lstrip('0123456789'))   
     df['ADD_ind_rep'] = df['ADD_ind_rep'].map(lambda x: x.replace('BIS', 'B'))
     df['ADD_ind_rep'] = df['ADD_ind_rep'].map(lambda x: x.replace('TER', 'T'))
     # additional columns : remove accent and put in caps
     df['ADD_caps_voie'] = df['voie'].map(lambda x: unidecode(x.upper()))
+    df.loc[df['ADD_ind_rep'].map(len)>0,['ADD_caps_voie']] = df['ADD_ind_rep']+' '+df['voie'].map(lambda x: unidecode(x.upper()))
     df['ADD_caps_nom_comm'] = df['nom_comm'].map(lambda x: unidecode(x.upper()))
     # change lat/lon dtype
     df[['lat', 'lon']].apply(to_numeric)
-
-    if verbose:
-        print("Kept %d lines" % df.shape[0])
+    print("Kept %d rows" % df.shape[0])
+    if verbose:  
         print("Quick look\n %s" % df.head(5))
+    # useful before loading to dn
+    df.where((notnull(df)), None)
     return df
 
 '''
@@ -73,8 +76,7 @@ SIREN
 '''
 def prepare_data_siren(verbose=VERBOSE):
     data_file = path.join(data_path, cfg['SIREN'])
-    if verbose:
-        print("Reading %s" % data_file)
+    print("Reading %s" % data_file)
     df = read_csv(data_file, sep=';', header='infer', encoding='ISO-8859-15')  # encoding ?
     # drop columns
     if verbose:
@@ -98,6 +100,7 @@ def prepare_data_siren(verbose=VERBOSE):
     df['TMP_LIBVOIE'] = df['LIBVOIE'].map(lambda x: unidecode(x))
     # get ready for merging
     df['ADD_VOIE'] = df['TMP_TYPVOIE'] + df['TMP_LIBVOIE']
+    df.loc[df['INDREP'].notnull(),['ADD_VOIE']] = df['INDREP']+' '+df['ADD_VOIE']
     #df[df.ADD_TYPVOIE.isin(df.ADD_LIBVOIE)==False]['ADD_VOIE']=  df['ADD_TYPVOIE']+ df['ADD_LIBVOIE']
     df['ADD_LIBCOM'] = df['LIBCOM'].map(lambda x: unidecode(x))
 
@@ -106,10 +109,10 @@ def prepare_data_siren(verbose=VERBOSE):
 
     # bano id
     df['BANO_ID'] = ""
-
+    print("Kept %d rows" % df.shape[0])
     if verbose:
-        print("Kept %d rows" % df.shape[0])
         print("Quick look\n %s" % df.head(5))
+        #print("Quick look\n %s" % df.ADD_VOIE.head(50))
 
     return df
 
@@ -188,9 +191,9 @@ if __name__ == "__main__":
     init(sys.argv[1:])
     
     with MeasureDuration() as m:
-        df_bano = prepare_data_bano(verbose=True)
+        df_bano = prepare_data_bano()
     with MeasureDuration() as m:
-        df_siren = prepare_data_siren(verbose=True)
+        df_siren = prepare_data_siren()
     #join_data()
     con, meta= connect(user, password, db)
     with MeasureDuration() as m:

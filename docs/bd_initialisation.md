@@ -2,7 +2,7 @@
 
 ## Création
 
-[Tutoriel](https://suhas.org/sqlalchemy-tutorial)
+A partir du [Tutoriel](https://suhas.org/sqlalchemy-tutorial).
 
 Prérequis : postgres, pgAdmin
 
@@ -33,7 +33,10 @@ CREATE EXTENSION
 ```
 
 
-Ensuite lancer le script `python`.
+Ensuite lancer le script `python` :
+``` sh
+python3 dbmain.py setup_ubhome.json
+```
 
 
 ## Manipulation de données
@@ -52,7 +55,7 @@ SET "BANO_ID" = (SELECT b.id
 	AND b."ADD_caps_nom_comm" = s."ADD_LIBCOM"
 	AND b."ADD_num_voie" = s."NUMVOIE" 
     AND levenshtein_less_equal(b."ADD_caps_voie", s."ADD_VOIE", 5)<6
-    ORDER BY levenshtein_less_equal(b."ADD_ind_rep", s."INDREP",2) + levenshtein_less_equal(b."ADD_caps_voie", s."ADD_VOIE", 5) 
+    ORDER BY levenshtein_less_equal(b."ADD_caps_voie", s."ADD_VOIE", 5) 
     LIMIT 1
     )
 ```    
