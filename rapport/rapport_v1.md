@@ -135,6 +135,14 @@ SET "BANO_ID" = (SELECT b.id
 
 ![EXPLAIN de la requête](./Explain_SIRENBANO.png  "EXPLAIN")
 
+### Requête utilisateur
+
+Pour accélerer les requêtes utilisateur, il  faut indexer les colonnes suivantes :
+ 
+* **lat** et **lon** dans la table BANO (pour rechercher les adresses dans un voisinage)
+* **bano_id** dans la table SIREN (pour la recherches des entreprises à partir des adresses sélectionnées dans BANO)
+ 
+
 ### Métriques 
 
 * chargement et nettoyage du BANO (python)
